@@ -16,6 +16,13 @@ void init() {
     printf("Failed to create file with error: %d\n", errno);
     exit(errno);
   }
+
+  // Now we need to get a new unique SID so we aren't an orphan
+  // Remember our parent has died.
+  if (setsid() < 0) {
+    fprintf(logfile, "Could not set our SID: %d\n", errno);
+    exit(errno);
+  }
 }
 
 void run() {
