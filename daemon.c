@@ -1,7 +1,21 @@
+#include <errno.h>
+#include <sys/stat.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+FILE* logfile;
+
 void init() {
+  // Change the umask so we can write to log files
+  umask(0);
+
+  // We should initialize and open log files here
+  logfile = fopen("./creddit.log", "a");
+  if (logfile == NULL) {
+    printf("Failed to create file with error: %d\n", errno);
+    exit(errno);
+  }
 }
 
 void run() {

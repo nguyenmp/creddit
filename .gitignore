@@ -2,3 +2,5 @@
 *~
 *.o
 creddit
+creddit-daemon
+*.log
