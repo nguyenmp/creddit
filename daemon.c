@@ -1,8 +1,12 @@
 #include <errno.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
+
+#define PAUSEINTERVAL (5 * 1000000)
 
 FILE* logfile;
 
@@ -21,12 +25,14 @@ void init() {
   // Remember our parent has died.
   if (setsid() < 0) {
     fprintf(logfile, "Could not set our SID: %d\n", errno);
+    fflush(logfile);
     exit(errno);
   }
 
   // Change to a safe directory
   if (chdir("/") < 0) {
     fprintf(logfile, "Could not change directory to root: %d\n", errno);
+    fflush(logfile);
     exit(errno);
   }
 
@@ -34,10 +40,28 @@ void init() {
   close(STDIN_FILENO);
   close(STDOUT_FILENO);
   close(STDERR_FILENO);
+
+  fprintf(logfile, "Successfully finished initialization.\n");
+  fflush(logfile);
 }
 
 void run() {
+  struct timeval lastrun;
+  struct timeval currenttime;
+  gettimeofday(&lastrun, NULL);
+
   while (1) {
+    // Do stuff
+    gettimeofday(&currenttime, NULL);
+    fprintf(logfile, "Seconds: %g\n", currenttime.tv_usec);
+    fflush(logfile);
+
+    // Sleep
+    int timeelapsed = currenttime.tv_usec - lastrun.tv_usec;
+    if (timeelapsed < PAUSEINTERVAL) usleep(PAUSEINTERVAL - timeelapsed);
+
+    // Reset timer
+    lastrun = currenttime;
   }
 }
 
@@ -51,8 +75,8 @@ int main() {
   if (pid == 0) {
     init();
     run();
+  } else {
+    // Elsewise, we are the parent and we want to exit gracefully
+    exit(0);
   }
-
-  // Elsewise, we are the parent and we want to exit gracefully
-  exit(0);
 }
