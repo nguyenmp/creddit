@@ -23,9 +23,22 @@ void init() {
     fprintf(logfile, "Could not set our SID: %d\n", errno);
     exit(errno);
   }
+
+  // Change to a safe directory
+  if (chdir("/") < 0) {
+    fprintf(logfile, "Could not change directory to root: %d\n", errno);
+    exit(errno);
+  }
+
+  // Close standard pipes
+  close(STDIN_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
 }
 
 void run() {
+  while (1) {
+  }
 }
 
 int main() {
