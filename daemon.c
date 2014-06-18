@@ -6,6 +6,7 @@
 #include <time.h>
 #include <unistd.h>
 
+// 5 Seconds = 5 million microseconds
 #define PAUSEINTERVAL (5 * 1000000)
 
 FILE* logfile;
@@ -46,18 +47,23 @@ void init() {
 }
 
 void run() {
-  struct timeval lastrun;
-  struct timeval currenttime;
-  gettimeofday(&lastrun, NULL);
+  struct timeval time;
+  gettimeofday(&time, NULL);
+
+  long lastrun = time.tv_usec;
+  long currenttime = 0;
 
   while (1) {
+    // Get the current time (this is the start time)
+    gettimeofday(&time, NULL);
+    currenttime = time.tv_usec;
+
     // Do stuff
-    gettimeofday(&currenttime, NULL);
-    fprintf(logfile, "Seconds: %g\n", currenttime.tv_usec);
+    fprintf(logfile, "Seconds: %lu\n", currenttime);
     fflush(logfile);
 
     // Sleep
-    int timeelapsed = currenttime.tv_usec - lastrun.tv_usec;
+    int timeelapsed = currenttime - lastrun;
     if (timeelapsed < PAUSEINTERVAL) usleep(PAUSEINTERVAL - timeelapsed);
 
     // Reset timer
@@ -75,6 +81,7 @@ int main() {
   if (pid == 0) {
     init();
     run();
+    exit(0);
   } else {
     // Elsewise, we are the parent and we want to exit gracefully
     exit(0);
